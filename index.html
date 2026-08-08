@@ -2,36 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Z-Stream Discord Test</title>
+    <title>Kinema Test</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
+        html, body {
             width: 100%;
             height: 100%;
             margin: 0;
-            padding: 0;
             overflow: hidden;
-            background: #111;
-            font-family: Arial, sans-serif;
+            background: #000;
         }
 
-        #stream {
+        iframe {
             width: 100%;
             height: 100%;
             border: 0;
             display: block;
-            background: #fff;
         }
 
         #status {
@@ -41,25 +29,23 @@
             z-index: 9999;
 
             padding: 8px 12px;
-            border-radius: 7px;
+            border-radius: 6px;
 
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, .8);
             color: white;
 
-            font-size: 12px;
+            font: 12px Arial;
         }
     </style>
 </head>
 
 <body>
 
-<div id="status">
-    Starting...
-</div>
+<div id="status">Loading Kinema...</div>
 
 <iframe
-    id="stream"
-    title="Z-Stream"
+    id="kinema"
+    src="https://1535334391478358127.discordsays.com/"
     allow="
         autoplay;
         encrypted-media;
@@ -70,138 +56,22 @@
 </iframe>
 
 <script>
-    "use strict";
+    const iframe = document.getElementById("kinema");
+    const status = document.getElementById("status");
 
-    const CLIENT_ID =
-        "1535467669854359623";
+    iframe.addEventListener("load", () => {
+        console.log("[Kinema] iframe loaded");
+        status.textContent = "Kinema iframe loaded";
 
-    const DIRECT_URL =
-        "https://zstream.mov/";
+        setTimeout(() => {
+            status.style.display = "none";
+        }, 2000);
+    });
 
-    const PROXY_URL =
-        `https://${CLIENT_ID}.discordsays.com/zstream/`;
-
-    const iframe =
-        document.getElementById("stream");
-
-    const status =
-        document.getElementById("status");
-
-
-    /*
-     * Discord embeds Activities inside an iframe.
-     *
-     * Normal browser:
-     *     GitHub Pages → zstream.mov
-     *
-     * Discord:
-     *     Discord → Activity → Discord proxy → zstream.mov
-     */
-
-    const insideDiscord =
-        window.parent !== window;
-
-
-    if (insideDiscord) {
-
-        status.textContent =
-            "Discord detected — loading Z-Stream through URL Mapping";
-
-        iframe.src =
-            PROXY_URL;
-
-        console.log(
-            "[Z-Stream] Proxy:",
-            PROXY_URL
-        );
-
-    } else {
-
-        status.textContent =
-            "Browser detected — loading Z-Stream directly";
-
-        iframe.src =
-            DIRECT_URL;
-
-        console.log(
-            "[Z-Stream] Direct:",
-            DIRECT_URL
-        );
-    }
-
-
-    /*
-     * iframe load
-     */
-
-    iframe.addEventListener(
-        "load",
-        () => {
-
-            status.textContent =
-                "Z-Stream iframe loaded";
-
-            console.log(
-                "[Z-Stream] iframe load event fired"
-            );
-
-            setTimeout(() => {
-
-                status.textContent =
-                    "Z-Stream loaded";
-
-            }, 2000);
-        }
-    );
-
-
-    /*
-     * iframe error
-     */
-
-    iframe.addEventListener(
-        "error",
-        (event) => {
-
-            status.textContent =
-                "Z-Stream iframe error";
-
-            console.error(
-                "[Z-Stream] iframe error:",
-                event
-            );
-        }
-    );
-
-
-    /*
-     * Global errors
-     */
-
-    window.addEventListener(
-        "error",
-        event => {
-
-            console.error(
-                "[Activity Error]",
-                event.message,
-                event.filename,
-                event.lineno
-            );
-        }
-    );
-
-
-    window.addEventListener(
-        "unhandledrejection",
-        event => {
-
-            console.error(
-                "[Promise Error]",
-                event.reason
-            );
-        }
-    );
+    iframe.addEventListener("error", (event) => {
+        console.error("[Kinema] iframe error:", event);
+        status.textContent = "Kinema iframe error";
+    });
 </script>
 
 </body>
