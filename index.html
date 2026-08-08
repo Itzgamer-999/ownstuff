@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,9 +9,19 @@
         content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     >
 
+    <meta name="theme-color" content="#000000">
+
     <title>Cinejoy</title>
 
     <style>
+        /* =========================================
+           RESET
+        ========================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
         html,
         body {
             width: 100%;
@@ -22,207 +33,525 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
         }
 
-        .player {
+        /* =========================================
+           APP
+        ========================================= */
+
+        #app {
             position: fixed;
             inset: 0;
             width: 100%;
             height: 100%;
             background: #000;
         }
+
+        /* =========================================
+           CINEJOY IFRAME
+        ========================================= */
 
         #cinejoy {
-            display: block;
+            position: absolute;
+            inset: 0;
+
             width: 100%;
             height: 100%;
+
             border: 0;
+            outline: none;
+
             background: #000;
+
+            display: block;
         }
 
-        .loading {
-            position: fixed;
+        /* =========================================
+           LOADING SCREEN
+        ========================================= */
+
+        #loading {
+            position: absolute;
             inset: 0;
-            z-index: 10;
+
+            z-index: 100;
 
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
+
+            gap: 16px;
 
             background: #000;
+
             color: #fff;
 
-            font-size: 16px;
-
             transition:
-                opacity 0.3s ease,
-                visibility 0.3s ease;
+                opacity 0.35s ease,
+                visibility 0.35s ease;
         }
 
-        .loading.hidden {
+        #loading.hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
 
-        .error {
-            position: fixed;
+        .spinner {
+            width: 38px;
+            height: 38px;
+
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            border-top-color: #fff;
+
+            border-radius: 50%;
+
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-text {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* =========================================
+           ERROR SCREEN
+        ========================================= */
+
+        #error {
+            position: absolute;
             inset: 0;
-            z-index: 20;
+
+            z-index: 200;
 
             display: none;
             align-items: center;
             justify-content: center;
 
             padding: 30px;
-            text-align: center;
 
             background: #000;
+
             color: #fff;
+
+            text-align: center;
         }
 
-        .error.visible {
+        #error.visible {
             display: flex;
         }
 
-        .error-content {
-            max-width: 500px;
+        .error-box {
+            width: min(500px, 100%);
         }
 
-        .error h2 {
-            margin-bottom: 10px;
+        .error-box h2 {
+            margin: 0 0 12px;
+
+            font-size: 22px;
         }
 
-        .error p {
-            color: #aaa;
-            line-height: 1.5;
+        .error-box p {
+            margin: 0;
+
+            color: rgba(255, 255, 255, 0.65);
+
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .retry-button {
+            margin-top: 20px;
+
+            padding: 10px 18px;
+
+            border: 0;
+            border-radius: 8px;
+
+            background: #5865f2;
+            color: #fff;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .retry-button:hover {
+            filter: brightness(1.1);
+        }
+
+        /* =========================================
+           DISCORD STATUS
+        ========================================= */
+
+        #discord-status {
+            position: fixed;
+
+            left: 12px;
+            bottom: 12px;
+
+            z-index: 300;
+
+            padding: 6px 10px;
+
+            border-radius: 6px;
+
+            background: rgba(0, 0, 0, 0.65);
+
+            color: rgba(255, 255, 255, 0.55);
+
+            font-size: 11px;
+
+            pointer-events: none;
+
+            opacity: 0;
+
+            transition: opacity 0.25s ease;
+        }
+
+        #discord-status.visible {
+            opacity: 1;
         }
     </style>
 </head>
 
 <body>
 
-    <main class="player">
+    <div id="app">
 
-        <div id="loading" class="loading">
-            Loading...
+        <!-- Loading -->
+        <div id="loading">
+            <div class="spinner"></div>
+
+            <div class="loading-text">
+                Loading Cinejoy...
+            </div>
         </div>
 
+        <!-- Cinejoy -->
         <iframe
             id="cinejoy"
-            src="https://cinejoy.to/"
             title="Cinejoy"
+            src="https://cinejoy.to/"
             allow="
                 autoplay;
                 encrypted-media;
                 fullscreen;
-                picture-in-picture
+                picture-in-picture;
+                clipboard-read;
+                clipboard-write
             "
             allowfullscreen
             referrerpolicy="strict-origin-when-cross-origin">
         </iframe>
 
-        <div id="error" class="error">
-            <div class="error-content">
-                <h2>Unable to load the player</h2>
+        <!-- Error -->
+        <div id="error">
+            <div class="error-box">
+
+                <h2>
+                    Unable to load Cinejoy
+                </h2>
+
                 <p>
-                    The external website may not allow itself to be
-                    displayed inside an iframe.
+                    Cinejoy may currently be unavailable or may not
+                    allow itself to be displayed inside an iframe.
                 </p>
+
+                <button
+                    id="retry"
+                    class="retry-button"
+                    type="button">
+                    Retry
+                </button>
+
             </div>
         </div>
 
-    </main>
+        <!-- Discord debug/status -->
+        <div id="discord-status">
+            Discord Activity
+        </div>
 
-    <!-- Discord Embedded App SDK -->
+    </div>
+
+    <!--
+        =========================================
+        DISCORD EMBEDDED APP SDK
+        =========================================
+
+        This is loaded from a CDN so GitHub Pages
+        does not need a backend or npm.
+    -->
+
     <script src="https://cdn.jsdelivr.net/npm/@discord/embedded-app-sdk@1.4.1/dist/discord-embedded-app-sdk.js"></script>
 
     <script>
         "use strict";
 
-        // ==========================================
-        // CONFIGURATION
-        // ==========================================
+        /* =========================================
+           CONFIGURATION
+        ========================================= */
 
-        const DISCORD_CLIENT_ID = "1535467669854359623";
+        const CONFIG = {
+            DISCORD_CLIENT_ID: "1535467669854359623",
 
-        const CINEJOY_URL = "https://cinejoy.to/";
+            CINEJOY_URL: "https://cinejoy.to/"
+        };
 
-        // ==========================================
-        // ELEMENTS
-        // ==========================================
 
-        const iframe = document.getElementById("cinejoy");
-        const loading = document.getElementById("loading");
-        const error = document.getElementById("error");
+        /* =========================================
+           DOM
+        ========================================= */
 
-        // ==========================================
-        // IFRAME
-        // ==========================================
+        const iframe =
+            document.getElementById("cinejoy");
 
-        iframe.src = CINEJOY_URL;
+        const loading =
+            document.getElementById("loading");
+
+        const error =
+            document.getElementById("error");
+
+        const retry =
+            document.getElementById("retry");
+
+        const discordStatus =
+            document.getElementById("discord-status");
+
+
+        /* =========================================
+           STATE
+        ========================================= */
+
+        let discordSdk = null;
+
+        let cinejoyLoaded = false;
+
+
+        /* =========================================
+           HELPERS
+        ========================================= */
+
+        function hideLoading() {
+            loading.classList.add("hidden");
+        }
+
+
+        function showLoading() {
+            loading.classList.remove("hidden");
+        }
+
+
+        function showError() {
+            loading.classList.add("hidden");
+            error.classList.add("visible");
+        }
+
+
+        function hideError() {
+            error.classList.remove("visible");
+        }
+
+
+        function setDiscordStatus(message) {
+            discordStatus.textContent = message;
+            discordStatus.classList.add("visible");
+
+            console.log("[Discord]", message);
+        }
+
+
+        /* =========================================
+           CINEJOY
+        ========================================= */
+
+        function loadCinejoy() {
+            cinejoyLoaded = false;
+
+            hideError();
+            showLoading();
+
+            iframe.src = CONFIG.CINEJOY_URL;
+        }
+
 
         iframe.addEventListener("load", () => {
-            loading.classList.add("hidden");
+            cinejoyLoaded = true;
+
+            hideLoading();
+
+            console.log(
+                "[Cinejoy] iframe loaded."
+            );
         });
 
-        // Note:
-        // Browsers do not reliably expose iframe loading
-        // errors for cross-origin websites.
-        //
-        // If Cinejoy blocks iframe embedding using CSP
-        // or X-Frame-Options, this page cannot override it.
 
-        // ==========================================
-        // DISCORD
-        // ==========================================
+        retry.addEventListener("click", () => {
+            loadCinejoy();
+        });
+
+
+        /* =========================================
+           DISCORD SDK
+        ========================================= */
 
         async function setupDiscord() {
-            // Opening the GitHub Pages URL normally in Chrome
-            // should still work, so Discord initialization is
-            // optional rather than fatal.
+
+            /*
+                The page can also be opened normally
+                outside Discord.
+
+                In that case the Discord SDK may not
+                be available/usable, but Cinejoy can
+                still load.
+            */
 
             if (!window.DiscordSDK) {
+
                 console.log(
-                    "Discord SDK is unavailable. Running as a normal website."
+                    "[Discord] SDK unavailable."
                 );
+
                 return;
             }
+
+
+            /*
+                Make sure the Client ID exists.
+            */
 
             if (
-                !DISCORD_CLIENT_ID ||
-                DISCORD_CLIENT_ID === "YOUR_DISCORD_CLIENT_ID"
+                !CONFIG.DISCORD_CLIENT_ID ||
+                CONFIG.DISCORD_CLIENT_ID ===
+                    "YOUR_DISCORD_CLIENT_ID"
             ) {
+
                 console.warn(
-                    "Discord Client ID has not been configured."
+                    "[Discord] Client ID is not configured."
                 );
+
                 return;
             }
 
+
             try {
-                const discordSdk = new DiscordSDK(
-                    DISCORD_CLIENT_ID
+
+                setDiscordStatus(
+                    "Connecting to Discord..."
                 );
+
+
+                /*
+                    Initialize Discord.
+                */
+
+                discordSdk =
+                    new DiscordSDK(
+                        CONFIG.DISCORD_CLIENT_ID
+                    );
+
+
+                /*
+                    Wait until Discord is ready.
+                */
 
                 await discordSdk.ready();
 
-                console.log(
-                    "Discord Embedded App SDK is ready!"
+
+                /*
+                    Make the SDK available globally
+                    for future Discord functionality.
+                */
+
+                window.discordSdk =
+                    discordSdk;
+
+
+                setDiscordStatus(
+                    "Discord Activity connected"
                 );
 
-                window.discordSdk = discordSdk;
+
+                console.log(
+                    "[Discord] SDK ready."
+                );
+
+
+                /*
+                    Hide the debug status after
+                    a short delay.
+                */
+
+                setTimeout(() => {
+                    discordStatus.classList.remove(
+                        "visible"
+                    );
+                }, 2500);
+
 
             } catch (err) {
+
                 console.error(
-                    "Discord SDK initialization failed:",
+                    "[Discord] Initialization failed:",
                     err
+                );
+
+                /*
+                    Important:
+                    Discord failing should NOT
+                    break the Cinejoy page.
+                */
+
+                discordSdk = null;
+
+                discordStatus.classList.remove(
+                    "visible"
                 );
             }
         }
 
-        setupDiscord();
+
+        /* =========================================
+           START APPLICATION
+        ========================================= */
+
+        function startApp() {
+
+            /*
+                Cinejoy loads independently from
+                Discord initialization.
+            */
+
+            loadCinejoy();
+
+
+            /*
+                Discord initialization runs separately.
+            */
+
+            setupDiscord();
+        }
+
+
+        startApp();
     </script>
 
 </body>
 </html>
+```
