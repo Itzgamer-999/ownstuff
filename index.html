@@ -2,9 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Cinejoy Activity</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#000000">
+
+    <title>GOATED</title>
 
     <style>
         * {
@@ -13,45 +19,133 @@
 
         html,
         body {
-            margin: 0;
             width: 100%;
             height: 100%;
+            margin: 0;
+            padding: 0;
             overflow: hidden;
             background: #000;
+        }
+
+        body {
             font-family: Arial, sans-serif;
         }
 
         #app {
+            position: fixed;
+            inset: 0;
             width: 100%;
             height: 100%;
+            background: #000;
+        }
+
+        #goated {
+            position: absolute;
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            border: 0;
+            outline: 0;
+
+            display: block;
+
+            background: #000;
+        }
+
+        #loading {
+            position: absolute;
+            inset: 0;
+
+            z-index: 10;
+
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
+
+            gap: 15px;
+
+            background: #000;
+            color: #fff;
+
+            transition:
+                opacity 0.3s ease,
+                visibility 0.3s ease;
         }
 
-        .message {
-            width: min(500px, 90%);
+        #loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 38px;
+            height: 38px;
+
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            border-top-color: #fff;
+
+            border-radius: 50%;
+
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #error {
+            position: absolute;
+            inset: 0;
+
+            z-index: 20;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
             text-align: center;
-            color: white;
+
+            padding: 30px;
+
+            background: #000;
+            color: #fff;
         }
 
-        .message h1 {
-            margin-bottom: 12px;
+        #error.visible {
+            display: flex;
         }
 
-        .message p {
-            color: #aaa;
+        .error-box {
+            max-width: 500px;
+        }
+
+        .error-box h2 {
+            margin-bottom: 10px;
+        }
+
+        .error-box p {
+            color: #999;
             line-height: 1.5;
         }
 
         button {
-            margin-top: 20px;
-            padding: 12px 20px;
+            margin-top: 15px;
+
+            padding: 10px 18px;
+
             border: 0;
-            border-radius: 8px;
+            border-radius: 7px;
+
             background: #5865f2;
-            color: white;
-            font-size: 15px;
+            color: #fff;
+
             font-weight: 600;
             cursor: pointer;
         }
@@ -60,12 +154,33 @@
             filter: brightness(1.1);
         }
 
-        #status {
+        #discord-status {
             position: fixed;
-            bottom: 10px;
+
             left: 10px;
-            color: #777;
+            bottom: 10px;
+
+            z-index: 50;
+
+            padding: 6px 9px;
+
+            border-radius: 6px;
+
+            background: rgba(0, 0, 0, 0.65);
+
+            color: rgba(255, 255, 255, 0.55);
+
             font-size: 11px;
+
+            opacity: 0;
+
+            transition: opacity 0.2s ease;
+
+            pointer-events: none;
+        }
+
+        #discord-status.visible {
+            opacity: 1;
         }
     </style>
 </head>
@@ -73,21 +188,45 @@
 <body>
 
 <div id="app">
-    <div class="message">
-        <h1>Cinejoy</h1>
 
-        <p>
-            Cinejoy currently does not allow external websites
-            to embed it inside an iframe.
-        </p>
-
-        <button id="openCinejoy">
-            Open Cinejoy
-        </button>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading GOATED...</div>
     </div>
-</div>
 
-<div id="status"></div>
+    <iframe
+        id="goated"
+        src="https://goated.cx/"
+        title="GOATED"
+        allow="
+            autoplay;
+            encrypted-media;
+            fullscreen;
+            picture-in-picture
+        "
+        allowfullscreen>
+    </iframe>
+
+    <div id="error">
+        <div class="error-box">
+            <h2>GOATED couldn't be embedded</h2>
+
+            <p>
+                The website may not allow external iframe
+                embedding, or it may currently be unavailable.
+            </p>
+
+            <button id="retry">
+                Retry
+            </button>
+        </div>
+    </div>
+
+    <div id="discord-status">
+        Discord Activity
+    </div>
+
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@discord/embedded-app-sdk@1.4.1/dist/discord-embedded-app-sdk.js"></script>
 
@@ -95,42 +234,142 @@
     "use strict";
 
     const CLIENT_ID = "1535467669854359623";
-    const CINEJOY_URL = "https://cinejoy.to/";
+    const GOATED_URL = "https://goated.cx/";
 
-    const status = document.getElementById("status");
-    const openButton = document.getElementById("openCinejoy");
+    const iframe =
+        document.getElementById("goated");
 
-    openButton.addEventListener("click", () => {
-        window.open(CINEJOY_URL, "_blank", "noopener,noreferrer");
+    const loading =
+        document.getElementById("loading");
+
+    const error =
+        document.getElementById("error");
+
+    const retry =
+        document.getElementById("retry");
+
+    const discordStatus =
+        document.getElementById("discord-status");
+
+
+    function showLoading() {
+        loading.classList.remove("hidden");
+    }
+
+
+    function hideLoading() {
+        loading.classList.add("hidden");
+    }
+
+
+    function showError() {
+        hideLoading();
+        error.classList.add("visible");
+    }
+
+
+    function hideError() {
+        error.classList.remove("visible");
+    }
+
+
+    function setDiscordStatus(text) {
+        discordStatus.textContent = text;
+        discordStatus.classList.add("visible");
+
+        console.log("[Discord]", text);
+    }
+
+
+    function loadGOATED() {
+        hideError();
+        showLoading();
+
+        iframe.src = GOATED_URL;
+    }
+
+
+    iframe.addEventListener("load", () => {
+        hideLoading();
+
+        console.log("[GOATED] iframe load event fired.");
     });
 
-    async function initializeDiscord() {
+
+    retry.addEventListener("click", () => {
+        loadGOATED();
+    });
+
+
+    async function setupDiscord() {
+
         if (!window.DiscordSDK) {
-            status.textContent = "Running outside Discord";
+            console.log(
+                "[Discord] SDK unavailable. Running normally."
+            );
+
             return;
         }
 
+
         try {
-            const discordSdk = new DiscordSDK(CLIENT_ID);
+
+            setDiscordStatus(
+                "Connecting to Discord..."
+            );
+
+
+            const discordSdk =
+                new DiscordSDK(CLIENT_ID);
+
 
             await discordSdk.ready();
 
-            window.discordSdk = discordSdk;
 
-            status.textContent = "Discord Activity connected";
+            window.discordSdk =
+                discordSdk;
 
-            console.log("Discord SDK ready!");
+
+            setDiscordStatus(
+                "Discord Activity connected"
+            );
+
+
+            console.log(
+                "[Discord] SDK is ready!"
+            );
+
+
+            setTimeout(() => {
+                discordStatus.classList.remove(
+                    "visible"
+                );
+            }, 2500);
+
+
         } catch (error) {
+
             console.error(
-                "Discord SDK initialization failed:",
+                "[Discord] SDK initialization failed:",
                 error
             );
 
-            status.textContent = "Discord SDK unavailable";
+            discordStatus.classList.remove(
+                "visible"
+            );
         }
     }
 
-    initializeDiscord();
+
+    function start() {
+
+        loadGOATED();
+
+        setupDiscord();
+    }
+
+
+    start();
 </script>
 
 </body>
