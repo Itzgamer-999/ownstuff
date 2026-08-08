@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>GOATED - Discord Test</title>
+    <title>Z-Stream Discord Test</title>
 
     <style>
         * {
@@ -22,440 +22,168 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background: #080808;
-            color: #fff;
+            background: #111;
             font-family: Arial, sans-serif;
         }
 
-        #app {
-            position: fixed;
-            inset: 0;
+        #stream {
             width: 100%;
             height: 100%;
-        }
-
-        #goated {
-            position: absolute;
-            inset: 0;
-
-            width: 100%;
-            height: 100%;
-
             border: 0;
-            outline: 0;
-
-            background: #fff;
-
             display: block;
+            background: #fff;
         }
 
         #status {
             position: fixed;
-            top: 12px;
-            left: 12px;
-
+            top: 10px;
+            left: 10px;
             z-index: 9999;
 
-            max-width: calc(100% - 24px);
-
-            padding: 9px 12px;
-
+            padding: 8px 12px;
             border-radius: 7px;
 
             background: rgba(0, 0, 0, 0.85);
-
-            color: #fff;
+            color: white;
 
             font-size: 12px;
-            line-height: 1.4;
-
-            pointer-events: none;
-        }
-
-        #status.success {
-            background: rgba(20, 120, 60, 0.9);
-        }
-
-        #status.error {
-            background: rgba(150, 30, 30, 0.9);
-        }
-
-        #fallback {
-            position: fixed;
-            inset: 0;
-
-            z-index: 1000;
-
-            display: none;
-
-            align-items: center;
-            justify-content: center;
-
-            padding: 30px;
-
-            background: #080808;
-
-            text-align: center;
-        }
-
-        #fallback.visible {
-            display: flex;
-        }
-
-        .box {
-            width: min(600px, 100%);
-        }
-
-        h1 {
-            margin: 0 0 12px;
-            font-size: 24px;
-        }
-
-        p {
-            color: #aaa;
-            line-height: 1.6;
-        }
-
-        code {
-            display: inline-block;
-
-            margin-top: 8px;
-
-            padding: 5px 8px;
-
-            border-radius: 5px;
-
-            background: #1c1c1c;
-
-            color: #ddd;
-        }
-
-        button {
-            margin-top: 18px;
-
-            padding: 10px 18px;
-
-            border: 0;
-            border-radius: 7px;
-
-            background: #5865f2;
-
-            color: #fff;
-
-            font-weight: 600;
-
-            cursor: pointer;
-        }
-
-        button:hover {
-            filter: brightness(1.1);
         }
     </style>
 </head>
 
 <body>
 
-<div id="app">
-
-    <div id="status">
-        Starting...
-    </div>
-
-    <iframe
-        id="goated"
-        title="GOATED"
-        allow="
-            autoplay;
-            encrypted-media;
-            fullscreen;
-            picture-in-picture
-        "
-        allowfullscreen>
-    </iframe>
-
+<div id="status">
+    Starting...
 </div>
 
-
-<div id="fallback">
-
-    <div class="box">
-
-        <h1>
-            GOATED could not be embedded
-        </h1>
-
-        <p id="fallbackText">
-            The Discord proxy or GOATED blocked the request.
-        </p>
-
-        <button
-            type="button"
-            onclick="location.reload()">
-            Try Again
-        </button>
-
-    </div>
-
-</div>
-
+<iframe
+    id="stream"
+    title="Z-Stream"
+    allow="
+        autoplay;
+        encrypted-media;
+        fullscreen;
+        picture-in-picture
+    "
+    allowfullscreen>
+</iframe>
 
 <script>
     "use strict";
 
-
-    /*
-    =====================================================
-    CONFIGURATION
-    =====================================================
-    */
-
     const CLIENT_ID =
         "1535467669854359623";
 
-    const GOATED_DIRECT =
-        "https://goated.cx/";
+    const DIRECT_URL =
+        "https://zstream.mov/";
 
-    /*
-        Discord's Activity proxy URL.
-
-        Your Developer Portal mapping must be:
-
-            Prefix: /goated
-            Target: goated.cx
-
-        Discord's documented proxy domain format is:
-
-            CLIENT_ID.discordsays.com
-    */
-
-    const GOATED_PROXY =
-        `https://${CLIENT_ID}.discordsays.com/goated/`;
-
-
-    /*
-    =====================================================
-    ELEMENTS
-    =====================================================
-    */
+    const PROXY_URL =
+        `https://${CLIENT_ID}.discordsays.com/zstream/`;
 
     const iframe =
-        document.getElementById("goated");
+        document.getElementById("stream");
 
     const status =
         document.getElementById("status");
 
-    const fallback =
-        document.getElementById("fallback");
-
-    const fallbackText =
-        document.getElementById("fallbackText");
-
 
     /*
-    =====================================================
-    ENVIRONMENT DETECTION
-    =====================================================
-    */
+     * Discord embeds Activities inside an iframe.
+     *
+     * Normal browser:
+     *     GitHub Pages → zstream.mov
+     *
+     * Discord:
+     *     Discord → Activity → Discord proxy → zstream.mov
+     */
 
-    /*
-        When you open the GitHub Pages URL normally:
-
-            window.parent === window
-
-        When Discord embeds your Activity:
-
-            window.parent !== window
-
-        Therefore we can use the direct URL in Chrome
-        and the Discord proxy URL inside Discord.
-    */
-
-    const isEmbedded =
+    const insideDiscord =
         window.parent !== window;
 
 
-    /*
-    =====================================================
-    STATUS
-    =====================================================
-    */
+    if (insideDiscord) {
 
-    function setStatus(
-        message,
-        type = ""
-    ) {
-        status.textContent = message;
+        status.textContent =
+            "Discord detected — loading Z-Stream through URL Mapping";
 
-        status.className = "";
-
-        if (type) {
-            status.classList.add(type);
-        }
+        iframe.src =
+            PROXY_URL;
 
         console.log(
-            "[Activity]",
-            message
-        );
-    }
-
-
-    /*
-    =====================================================
-    URL SELECTION
-    =====================================================
-    */
-
-    let targetURL;
-
-    if (isEmbedded) {
-
-        targetURL =
-            GOATED_PROXY;
-
-        setStatus(
-            "Discord detected — testing URL Mapping..."
+            "[Z-Stream] Proxy:",
+            PROXY_URL
         );
 
     } else {
 
-        targetURL =
-            GOATED_DIRECT;
+        status.textContent =
+            "Browser detected — loading Z-Stream directly";
 
-        setStatus(
-            "Normal browser — loading GOATED directly..."
+        iframe.src =
+            DIRECT_URL;
+
+        console.log(
+            "[Z-Stream] Direct:",
+            DIRECT_URL
         );
     }
 
 
-    console.log(
-        "[Activity] Embedded:",
-        isEmbedded
-    );
-
-    console.log(
-        "[Activity] Target:",
-        targetURL
-    );
-
-
     /*
-    =====================================================
-    LOAD IFRAME
-    =====================================================
-    */
-
-    iframe.src =
-        targetURL;
-
-
-    /*
-    =====================================================
-    IFRAME LOAD
-    =====================================================
-    */
+     * iframe load
+     */
 
     iframe.addEventListener(
         "load",
         () => {
 
-            setStatus(
-                "Iframe load event fired — checking result...",
-                "success"
-            );
+            status.textContent =
+                "Z-Stream iframe loaded";
 
             console.log(
-                "[GOATED] iframe load event fired."
+                "[Z-Stream] iframe load event fired"
             );
-
-            /*
-                Give the document a moment to render.
-            */
 
             setTimeout(() => {
 
-                setStatus(
-                    "GOATED iframe loaded. Check whether the page is visible.",
-                    "success"
-                );
+                status.textContent =
+                    "Z-Stream loaded";
 
-            }, 1500);
+            }, 2000);
         }
     );
 
 
     /*
-    =====================================================
-    IFRAME ERROR
-    =====================================================
-    */
+     * iframe error
+     */
 
     iframe.addEventListener(
         "error",
         (event) => {
 
+            status.textContent =
+                "Z-Stream iframe error";
+
             console.error(
-                "[GOATED] iframe error:",
+                "[Z-Stream] iframe error:",
                 event
-            );
-
-            setStatus(
-                "Iframe error — request was blocked.",
-                "error"
-            );
-
-            fallbackText.textContent =
-                "The browser or Discord blocked the GOATED iframe request.";
-
-            fallback.classList.add(
-                "visible"
             );
         }
     );
 
 
     /*
-    =====================================================
-    TIMEOUT DIAGNOSTIC
-    =====================================================
-    */
-
-    setTimeout(() => {
-
-        console.log(
-            "[GOATED] 8-second diagnostic"
-        );
-
-        console.log(
-            "Embedded:",
-            isEmbedded
-        );
-
-        console.log(
-            "Target URL:",
-            targetURL
-        );
-
-        /*
-            We intentionally cannot inspect
-            iframe.contentDocument because GOATED
-            is cross-origin.
-        */
-
-    }, 8000);
-
-
-    /*
-    =====================================================
-    GLOBAL ERROR LOGGING
-    =====================================================
-    */
+     * Global errors
+     */
 
     window.addEventListener(
         "error",
-        (event) => {
+        event => {
 
             console.error(
-                "[Global Error]",
+                "[Activity Error]",
                 event.message,
                 event.filename,
                 event.lineno
@@ -466,7 +194,7 @@
 
     window.addEventListener(
         "unhandledrejection",
-        (event) => {
+        event => {
 
             console.error(
                 "[Promise Error]",
@@ -474,7 +202,6 @@
             );
         }
     );
-
 </script>
 
 </body>
