@@ -2,76 +2,1588 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>Kinema Test</title>
+    <title>Movie Activity</title>
 
     <style>
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-            background: #000;
+        * {
+            box-sizing: border-box;
         }
 
-        iframe {
+        html,
+        body {
+            margin: 0;
             width: 100%;
             height: 100%;
+            background: #08090c;
+            color: #fff;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            height: 70px;
+            min-height: 70px;
+
+            display: flex;
+            align-items: center;
+            gap: 15px;
+
+            padding: 0 22px;
+
+            background: #111319;
+            border-bottom: 1px solid #292c35;
+        }
+
+        .logo {
+            font-size: 21px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .search {
+            flex: 1;
+            max-width: 650px;
+            margin: auto;
+
+            display: flex;
+            gap: 8px;
+        }
+
+        #query {
+            flex: 1;
+
+            height: 42px;
+
+            padding: 0 15px;
+
+            border: 1px solid #3a3d48;
+            border-radius: 10px;
+
+            outline: none;
+
+            background: #1a1c22;
+            color: white;
+
+            font-size: 15px;
+        }
+
+        #query:focus {
+            border-color: #6672ff;
+        }
+
+        button {
             border: 0;
-            display: block;
+            border-radius: 9px;
+
+            padding: 0 18px;
+
+            background: #5865f2;
+            color: white;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        button:disabled {
+            opacity: .5;
+            cursor: default;
+        }
+
+        main {
+            flex: 1;
+            min-height: 0;
+
+            display: flex;
+            flex-direction: column;
         }
 
         #status {
+            min-height: 30px;
+
+            padding: 8px 18px;
+
+            color: #aeb4c2;
+
+            font-size: 13px;
+        }
+
+        #results {
+            flex: 1;
+            overflow-y: auto;
+
+            padding: 12px 20px 30px;
+
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fill, minmax(180px, 1fr));
+
+            gap: 16px;
+            align-content: start;
+        }
+
+        .card {
+            min-width: 0;
+
+            padding: 12px;
+
+            background: #14161c;
+
+            border: 1px solid #282b34;
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition:
+                transform .15s ease,
+                border-color .15s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: #5865f2;
+        }
+
+        .poster {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+
+            border-radius: 8px;
+
+            background: #22252d;
+            color: #777d8b;
+        }
+
+        .poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .title {
+            margin-top: 9px;
+
+            font-weight: 700;
+            font-size: 14px;
+
+            line-height: 1.3;
+        }
+
+        .meta {
+            margin-top: 5px;
+
+            color: #858b99;
+
+            font-size: 12px;
+        }
+
+        #playerView {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 9999;
+            inset: 0;
 
-            padding: 8px 12px;
-            border-radius: 6px;
+            z-index: 100;
 
-            background: rgba(0, 0, 0, .8);
-            color: white;
+            display: none;
+            flex-direction: column;
 
-            font: 12px Arial;
+            background: #000;
+        }
+
+        #playerTop {
+            height: 55px;
+            min-height: 55px;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 0 15px;
+
+            background: #111319;
+        }
+
+        #playerTitle {
+            flex: 1;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            font-weight: 700;
+        }
+
+        #videoContainer {
+            flex: 1;
+            min-height: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: black;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+
+            object-fit: contain;
+
+            background: black;
+        }
+
+        #episodePanel {
+            display: none;
+
+            position: fixed;
+            inset: 0;
+
+            z-index: 200;
+
+            background: rgba(0, 0, 0, .78);
+
+            align-items: center;
+            justify-content: center;
+        }
+
+        #episodeBox {
+            width: min(520px, 90vw);
+            max-height: 80vh;
+
+            overflow-y: auto;
+
+            padding: 20px;
+
+            background: #17191f;
+
+            border: 1px solid #30333d;
+            border-radius: 14px;
+        }
+
+        #episodeBox h2 {
+            margin-top: 0;
+        }
+
+        .episode {
+            width: 100%;
+            min-height: 42px;
+
+            margin: 7px 0;
+
+            text-align: left;
+
+            background: #242730;
+        }
+
+        .close {
+            background: #343842;
+        }
+
+        .error {
+            width: 100%;
+            padding: 30px;
+
+            text-align: center;
+
+            color: #ff8b8b;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 0 10px;
+            }
+
+            .logo {
+                display: none;
+            }
+
+            #results {
+                grid-template-columns:
+                    repeat(auto-fill, minmax(135px, 1fr));
+
+                padding: 10px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<div id="status">Loading Kinema...</div>
+<div id="app">
 
-<iframe
-    id="kinema"
-    src="https://1535334391478358127.discordsays.com/"
-    allow="
-        autoplay;
-        encrypted-media;
-        fullscreen;
-        picture-in-picture
-    "
-    allowfullscreen>
-</iframe>
+    <header>
+
+        <div class="logo">
+            🎬 Movie Activity
+        </div>
+
+        <form
+            class="search"
+            id="searchForm"
+        >
+
+            <input
+                id="query"
+                autocomplete="off"
+                placeholder="Search movies and series..."
+            >
+
+            <button id="searchButton">
+                Search
+            </button>
+
+        </form>
+
+    </header>
+
+    <main>
+
+        <div id="status">
+            Ready
+        </div>
+
+        <div id="results"></div>
+
+    </main>
+
+</div>
+
+
+<!-- PLAYER -->
+
+<div id="playerView">
+
+    <div id="playerTop">
+
+        <button
+            class="close"
+            id="closePlayer"
+        >
+            ← Back
+        </button>
+
+        <div id="playerTitle">
+            Loading...
+        </div>
+
+        <button id="fullscreenButton">
+            ⛶
+        </button>
+
+    </div>
+
+    <div id="videoContainer">
+
+        <video
+            id="video"
+            controls
+            playsinline
+            crossorigin="anonymous">
+        </video>
+
+    </div>
+
+</div>
+
+
+<!-- EPISODE SELECTOR -->
+
+<div id="episodePanel">
+
+    <div id="episodeBox">
+
+        <h2 id="episodeTitle">
+            Select Episode
+        </h2>
+
+        <div id="episodes"></div>
+
+        <button
+            class="close"
+            id="closeEpisodes"
+            style="margin-top:12px;width:100%;height:42px;">
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
 
 <script>
-    const iframe = document.getElementById("kinema");
-    const status = document.getElementById("status");
+"use strict";
 
-    iframe.addEventListener("load", () => {
-        console.log("[Kinema] iframe loaded");
-        status.textContent = "Kinema iframe loaded";
 
-        setTimeout(() => {
-            status.style.display = "none";
-        }, 2000);
-    });
+/*
+========================================================
+CONFIGURATION
+========================================================
+*/
 
-    iframe.addEventListener("error", (event) => {
-        console.error("[Kinema] iframe error:", event);
-        status.textContent = "Kinema iframe error";
-    });
+
+const CLIENT_ID =
+    "1535467669854359623";
+
+
+/*
+ * Kinema API
+ *
+ * This is the API host you supplied.
+ */
+
+const KINEMA_API =
+    "https://1535334391478358127.discordsays.com";
+
+
+/*
+ * If you are using the authorized Cloudflare Worker
+ * instead, put its base URL here.
+ *
+ * Example:
+ *
+ * https://kinema-activity.cloudflare1-prowling880.workers.dev
+ *
+ * Leave empty to use KINEMA_API directly.
+ */
+
+const WORKER_API = "https://kinema-activity.cloudflare1-prowling880.workers.dev";
+
+
+/*
+ * We can switch between them without rewriting
+ * the rest of the application.
+ */
+
+const API =
+    WORKER_API.trim() || KINEMA_API;
+
+
+/*
+========================================================
+ELEMENTS
+========================================================
+*/
+
+
+const searchForm =
+    document.getElementById("searchForm");
+
+const queryInput =
+    document.getElementById("query");
+
+const searchButton =
+    document.getElementById("searchButton");
+
+const results =
+    document.getElementById("results");
+
+const status =
+    document.getElementById("status");
+
+const playerView =
+    document.getElementById("playerView");
+
+const video =
+    document.getElementById("video");
+
+const playerTitle =
+    document.getElementById("playerTitle");
+
+const episodePanel =
+    document.getElementById("episodePanel");
+
+const episodes =
+    document.getElementById("episodes");
+
+
+/*
+========================================================
+STATE
+========================================================
+*/
+
+
+let currentItem = null;
+
+let hls = null;
+
+
+/*
+========================================================
+STATUS
+========================================================
+*/
+
+
+function setStatus(message) {
+
+    status.textContent = message;
+
+}
+
+
+/*
+========================================================
+FETCH JSON
+========================================================
+*/
+
+
+async function apiJSON(
+    path
+) {
+
+    const url =
+        API + path;
+
+    console.log(
+        "[API]",
+        url
+    );
+
+    const response =
+        await fetch(
+            url,
+            {
+                method: "GET",
+                credentials: "omit",
+                cache: "no-store"
+            }
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            `HTTP ${response.status}`
+        );
+
+    }
+
+    return await response.json();
+}
+
+
+/*
+========================================================
+SEARCH
+========================================================
+*/
+
+
+searchForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+        const query =
+            queryInput.value.trim();
+
+        if (!query) {
+            return;
+        }
+
+        await search(query);
+
+    }
+);
+
+
+async function search(
+    query
+) {
+
+    searchButton.disabled = true;
+
+    results.innerHTML = "";
+
+    setStatus(
+        `Searching for "${query}"...`
+    );
+
+    try {
+
+        const data =
+            await apiJSON(
+                "/api/search?q=" +
+                encodeURIComponent(query)
+            );
+
+        console.log(
+            "[SEARCH RESPONSE]",
+            data
+        );
+
+        const items =
+            normalizeSearchResults(data);
+
+        if (!items.length) {
+
+            results.innerHTML =
+                `<div class="error">
+                    No results found.
+                 </div>`;
+
+            setStatus(
+                "No results."
+            );
+
+            return;
+        }
+
+        renderResults(items);
+
+        setStatus(
+            `${items.length} result(s)`
+        );
+
+    } catch (error) {
+
+        console.error(
+            "[SEARCH ERROR]",
+            error
+        );
+
+        results.innerHTML =
+            `<div class="error">
+                Search failed.<br>
+                ${escapeHTML(error.message)}
+             </div>`;
+
+        setStatus(
+            "Search failed."
+        );
+
+    } finally {
+
+        searchButton.disabled = false;
+
+    }
+}
+
+
+/*
+========================================================
+NORMALIZE SEARCH RESULTS
+========================================================
+
+Kinema's exact response shape can change.
+
+This handles the common forms:
+
+[
+    {...}
+]
+
+or:
+
+{
+    results: [...]
+}
+
+or:
+
+{
+    data: [...]
+}
+*/
+
+
+function normalizeSearchResults(
+    data
+) {
+
+    if (Array.isArray(data)) {
+        return data;
+    }
+
+    if (Array.isArray(data.results)) {
+        return data.results;
+    }
+
+    if (Array.isArray(data.data)) {
+        return data.data;
+    }
+
+    if (Array.isArray(data.items)) {
+        return data.items;
+    }
+
+    return [];
+}
+
+
+/*
+========================================================
+RESULT UI
+========================================================
+*/
+
+
+function renderResults(
+    items
+) {
+
+    results.innerHTML = "";
+
+    for (const item of items) {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "card";
+
+        const title =
+            item.title ||
+            item.name ||
+            item.t ||
+            "Unknown title";
+
+        const poster =
+            item.poster ||
+            item.posterUrl ||
+            item.image ||
+            item.img ||
+            "";
+
+        const year =
+            item.year ||
+            item.releaseYear ||
+            "";
+
+        const type =
+            item.type ||
+            item.kind ||
+            "";
+
+        card.innerHTML = `
+
+            <div class="poster">
+
+                ${
+                    poster
+                    ?
+                    `<img
+                        src="${escapeAttribute(poster)}"
+                        loading="lazy"
+                        onerror="this.parentElement.textContent='🎬';">
+                    `
+                    :
+                    "🎬"
+                }
+
+            </div>
+
+            <div class="title">
+                ${escapeHTML(title)}
+            </div>
+
+            <div class="meta">
+                ${escapeHTML(
+                    [year, type]
+                        .filter(Boolean)
+                        .join(" • ")
+                )}
+            </div>
+
+        `;
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                selectItem(
+                    item
+                );
+
+            }
+        );
+
+        results.appendChild(
+            card
+        );
+    }
+}
+
+
+/*
+========================================================
+SELECT RESULT
+========================================================
+*/
+
+
+async function selectItem(
+    item
+) {
+
+    currentItem =
+        item;
+
+    console.log(
+        "[SELECTED]",
+        item
+    );
+
+
+    /*
+     * If it looks like a series, ask for
+     * season/episode.
+     */
+
+    const isSeries =
+        String(
+            item.type ||
+            item.kind ||
+            item.mediaType ||
+            ""
+        ).toLowerCase()
+        .includes("tv");
+
+
+    /*
+     * We also support explicit season data.
+     */
+
+    if (
+        isSeries ||
+        item.seasons ||
+        item.episodes
+    ) {
+
+        showEpisodeSelector(
+            item
+        );
+
+        return;
+    }
+
+
+    await playItem(
+        item,
+        1,
+        1
+    );
+}
+
+
+/*
+========================================================
+PLAY ITEM
+========================================================
+*/
+
+
+async function playItem(
+    item,
+    season = 1,
+    episode = 1
+) {
+
+    setStatus(
+        "Resolving stream..."
+    );
+
+    playerView.style.display =
+        "flex";
+
+    playerTitle.textContent =
+        item.title ||
+        item.name ||
+        "Video";
+
+
+    try {
+
+        /*
+         * Kinema expects the opaque ref
+         * returned by /api/search.
+         */
+
+        const ref =
+            item.ref ||
+            item.id ||
+            item.k ||
+            item.url;
+
+
+        if (!ref) {
+
+            throw new Error(
+                "Search result does not contain a stream reference."
+            );
+
+        }
+
+
+        const path =
+            "/api/stream?" +
+            "ref=" +
+            encodeURIComponent(ref) +
+            "&season=" +
+            encodeURIComponent(season) +
+            "&episode=" +
+            encodeURIComponent(episode);
+
+
+        const data =
+            await apiJSON(
+                path
+            );
+
+
+        console.log(
+            "[STREAM RESPONSE]",
+            data
+        );
+
+
+        /*
+         * Different APIs use different names.
+         */
+
+        const streamURL =
+            data.url ||
+            data.stream ||
+            data.playbackUrl ||
+            data.playlist ||
+            data.m3u8;
+
+
+        if (!streamURL) {
+
+            throw new Error(
+                "No playback URL was returned."
+            );
+
+        }
+
+
+        playerTitle.textContent =
+            data.title ||
+            item.title ||
+            item.name ||
+            "Video";
+
+
+        await loadHLS(
+            streamURL
+        );
+
+
+        setStatus(
+            "Playing"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "[PLAY ERROR]",
+            error
+        );
+
+        playerView.style.display =
+            "none";
+
+        alert(
+            "Could not load the video:\n\n" +
+            error.message
+        );
+
+    }
+}
+
+
+/*
+========================================================
+HLS
+========================================================
+*/
+
+
+async function loadHLS(
+    url
+) {
+
+    destroyHLS();
+
+    video.pause();
+
+    video.removeAttribute(
+        "src"
+    );
+
+    video.load();
+
+
+    /*
+     * Safari / native HLS.
+     */
+
+    if (
+        video.canPlayType(
+            "application/vnd.apple.mpegurl"
+        )
+    ) {
+
+        video.src =
+            url;
+
+        await video.play().catch(
+            () => {}
+        );
+
+        return;
+    }
+
+
+    /*
+     * hls.js
+     *
+     * We load it dynamically from jsDelivr.
+     */
+
+    await loadHlsLibrary();
+
+
+    if (
+        !window.Hls ||
+        !window.Hls.isSupported()
+    ) {
+
+        throw new Error(
+            "This browser does not support HLS playback."
+        );
+
+    }
+
+
+    hls =
+        new window.Hls({
+
+            enableWorker: true,
+
+            lowLatencyMode: false,
+
+            backBufferLength: 90
+
+        });
+
+
+    hls.on(
+        window.Hls.Events.ERROR,
+        (
+            event,
+            data
+        ) => {
+
+            console.error(
+                "[HLS ERROR]",
+                data
+            );
+
+            if (
+                data.fatal
+            ) {
+
+                switch (
+                    data.type
+                ) {
+
+                    case window.Hls.ErrorTypes.NETWORK_ERROR:
+
+                        console.log(
+                            "[HLS] Recovering network error..."
+                        );
+
+                        hls.startLoad();
+
+                        break;
+
+
+                    case window.Hls.ErrorTypes.MEDIA_ERROR:
+
+                        console.log(
+                            "[HLS] Recovering media error..."
+                        );
+
+                        hls.recoverMediaError();
+
+                        break;
+
+
+                    default:
+
+                        destroyHLS();
+
+                        break;
+                }
+            }
+        }
+    );
+
+
+    hls.loadSource(
+        url
+    );
+
+    hls.attachMedia(
+        video
+    );
+
+
+    hls.once(
+        window.Hls.Events.MANIFEST_PARSED,
+        () => {
+
+            video.play().catch(
+                () => {}
+            );
+
+        }
+    );
+}
+
+
+/*
+========================================================
+LOAD HLS.JS
+========================================================
+*/
+
+
+let hlsLibraryPromise = null;
+
+
+function loadHlsLibrary() {
+
+    if (
+        window.Hls
+    ) {
+
+        return Promise.resolve();
+
+    }
+
+
+    if (
+        hlsLibraryPromise
+    ) {
+
+        return hlsLibraryPromise;
+
+    }
+
+
+    hlsLibraryPromise =
+        new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                const script =
+                    document.createElement(
+                        "script"
+                    );
+
+
+                /*
+                 * Pinned version.
+                 */
+
+                script.src =
+                    "https://cdn.jsdelivr.net/npm/hls.js@1.6.16/dist/hls.min.js";
+
+
+                script.onload =
+                    () => resolve();
+
+                script.onerror =
+                    () => reject(
+                        new Error(
+                            "Could not load hls.js."
+                        )
+                    );
+
+
+                document.head.appendChild(
+                    script
+                );
+
+            }
+        );
+
+
+    return hlsLibraryPromise;
+}
+
+
+/*
+========================================================
+DESTROY PLAYER
+========================================================
+*/
+
+
+function destroyHLS() {
+
+    if (hls) {
+
+        hls.destroy();
+
+        hls =
+            null;
+    }
+
+}
+
+
+/*
+========================================================
+CLOSE PLAYER
+========================================================
+*/
+
+
+document
+    .getElementById("closePlayer")
+    .addEventListener(
+        "click",
+        () => {
+
+            destroyHLS();
+
+            video.pause();
+
+            video.removeAttribute(
+                "src"
+            );
+
+            video.load();
+
+            playerView.style.display =
+                "none";
+
+        }
+    );
+
+
+/*
+========================================================
+FULLSCREEN
+========================================================
+*/
+
+
+document
+    .getElementById("fullscreenButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            const container =
+                document.getElementById(
+                    "videoContainer"
+                );
+
+
+            if (
+                document.fullscreenElement
+            ) {
+
+                await document.exitFullscreen();
+
+            } else {
+
+                await container
+                    .requestFullscreen()
+                    .catch(
+                        () => {}
+                    );
+
+            }
+
+        }
+    );
+
+
+/*
+========================================================
+EPISODE SELECTOR
+========================================================
+*/
+
+
+function showEpisodeSelector(
+    item
+) {
+
+    episodePanel.style.display =
+        "flex";
+
+    episodes.innerHTML =
+        "";
+
+
+    /*
+     * If the API gives us explicit episodes,
+     * use them.
+     */
+
+    const episodeList =
+        Array.isArray(
+            item.episodes
+        )
+        ?
+        item.episodes
+        :
+        null;
+
+
+    if (
+        episodeList &&
+        episodeList.length
+    ) {
+
+        episodeList.forEach(
+            (
+                ep,
+                index
+            ) => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+                button.className =
+                    "episode";
+
+                const season =
+                    ep.season ||
+                    1;
+
+                const episode =
+                    ep.episode ||
+                    ep.number ||
+                    index + 1;
+
+                button.textContent =
+                    `Season ${season} · Episode ${episode}` +
+                    (
+                        ep.title
+                        ?
+                        ` — ${ep.title}`
+                        :
+                        ""
+                    );
+
+
+                button.onclick =
+                    async () => {
+
+                        episodePanel
+                            .style
+                            .display =
+                            "none";
+
+                        await playItem(
+                            item,
+                            season,
+                            episode
+                        );
+
+                    };
+
+
+                episodes.appendChild(
+                    button
+                );
+
+            }
+        );
+
+        return;
+    }
+
+
+    /*
+     * If Kinema only gives us the show reference,
+     * create a simple episode picker.
+     *
+     * Adjust MAX_EPISODES if your catalog uses
+     * more episodes.
+     */
+
+    const MAX_EPISODES =
+        20;
+
+
+    for (
+        let ep = 1;
+        ep <= MAX_EPISODES;
+        ep++
+    ) {
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+        button.className =
+            "episode";
+
+        button.textContent =
+            `Episode ${ep}`;
+
+
+        button.onclick =
+            async () => {
+
+                episodePanel
+                    .style
+                    .display =
+                    "none";
+
+                await playItem(
+                    item,
+                    1,
+                    ep
+                );
+
+            };
+
+
+        episodes.appendChild(
+            button
+        );
+
+    }
+
+}
+
+
+/*
+========================================================
+CLOSE EPISODES
+========================================================
+*/
+
+
+document
+    .getElementById("closeEpisodes")
+    .addEventListener(
+        "click",
+        () => {
+
+            episodePanel.style.display =
+                "none";
+
+        }
+    );
+
+
+/*
+========================================================
+ESCAPE HTML
+========================================================
+*/
+
+
+function escapeHTML(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+function escapeAttribute(
+    value
+) {
+
+    return escapeHTML(
+        value
+    );
+
+}
+
+
+/*
+========================================================
+START
+========================================================
+*/
+
+
+console.log(
+    "Movie Activity started"
+);
+
+console.log(
+    "Client ID:",
+    CLIENT_ID
+);
+
+console.log(
+    "API:",
+    API
+);
+
+setStatus(
+    "Ready — search for a movie."
+);
+
 </script>
 
 </body>
