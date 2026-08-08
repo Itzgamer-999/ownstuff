@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <title>Cinejoy</title>
+
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .player {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        #cinejoy {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #000;
+        }
+
+        .loading {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #000;
+            color: #fff;
+
+            font-size: 16px;
+
+            transition:
+                opacity 0.3s ease,
+                visibility 0.3s ease;
+        }
+
+        .loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .error {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+            text-align: center;
+
+            background: #000;
+            color: #fff;
+        }
+
+        .error.visible {
+            display: flex;
+        }
+
+        .error-content {
+            max-width: 500px;
+        }
+
+        .error h2 {
+            margin-bottom: 10px;
+        }
+
+        .error p {
+            color: #aaa;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="player">
+
+        <div id="loading" class="loading">
+            Loading...
+        </div>
+
+        <iframe
+            id="cinejoy"
+            src="https://cinejoy.to/"
+            title="Cinejoy"
+            allow="
+                autoplay;
+                encrypted-media;
+                fullscreen;
+                picture-in-picture
+            "
+            allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin">
+        </iframe>
+
+        <div id="error" class="error">
+            <div class="error-content">
+                <h2>Unable to load the player</h2>
+                <p>
+                    The external website may not allow itself to be
+                    displayed inside an iframe.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Discord Embedded App SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@discord/embedded-app-sdk@1.4.1/dist/discord-embedded-app-sdk.js"></script>
+
+    <script>
+        "use strict";
+
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+
+        const DISCORD_CLIENT_ID = "YOUR_DISCORD_CLIENT_ID";
+
+        const CINEJOY_URL = "https://cinejoy.to/";
+
+        // ==========================================
+        // ELEMENTS
+        // ==========================================
+
+        const iframe = document.getElementById("cinejoy");
+        const loading = document.getElementById("loading");
+        const error = document.getElementById("error");
+
+        // ==========================================
+        // IFRAME
+        // ==========================================
+
+        iframe.src = CINEJOY_URL;
+
+        iframe.addEventListener("load", () => {
+            loading.classList.add("hidden");
+        });
+
+        // Note:
+        // Browsers do not reliably expose iframe loading
+        // errors for cross-origin websites.
+        //
+        // If Cinejoy blocks iframe embedding using CSP
+        // or X-Frame-Options, this page cannot override it.
+
+        // ==========================================
+        // DISCORD
+        // ==========================================
+
+        async function setupDiscord() {
+            // Opening the GitHub Pages URL normally in Chrome
+            // should still work, so Discord initialization is
+            // optional rather than fatal.
+
+            if (!window.DiscordSDK) {
+                console.log(
+                    "Discord SDK is unavailable. Running as a normal website."
+                );
+                return;
+            }
+
+            if (
+                !DISCORD_CLIENT_ID ||
+                DISCORD_CLIENT_ID === "YOUR_DISCORD_CLIENT_ID"
+            ) {
+                console.warn(
+                    "Discord Client ID has not been configured."
+                );
+                return;
+            }
+
+            try {
+                const discordSdk = new DiscordSDK(
+                    DISCORD_CLIENT_ID
+                );
+
+                await discordSdk.ready();
+
+                console.log(
+                    "Discord Embedded App SDK is ready!"
+                );
+
+                window.discordSdk = discordSdk;
+
+            } catch (err) {
+                console.error(
+                    "Discord SDK initialization failed:",
+                    err
+                );
+            }
+        }
+
+        setupDiscord();
+    </script>
+
+</body>
+</html>
